@@ -31,6 +31,7 @@ Available parameters:
 - `display_title: true|false` (defaults to true) - allows you to hide the entire first line of the changelog
 - `display_links: true|false` (defaults to true) - allows you to hide links to commits from your changelog
 - `commit_url: 'https://github.com/username/repository/commit'` - prepended to the commit ID to build usable links
+- `ignore_scopes: ['android','windows']`: allows you to ignore any commits which include a given scope, like this one: `feat(android): add functionality not relevant to the release we are producing`
 - View other options by searching for `available_options` in `conventional_changelog.rb`
 
 Example:
