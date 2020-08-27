@@ -263,7 +263,7 @@ module Fastlane
             default_value: [],
             type: Array,
             optional: true
-          )
+          ),
           FastlaneCore::ConfigItem.new(
             key: :display_author,
             description: "Whether you want to show the author of the commit",
