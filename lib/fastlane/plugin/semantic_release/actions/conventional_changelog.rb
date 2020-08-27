@@ -78,8 +78,10 @@ module Fastlane
               scopes_to_ignore = params[:ignore_scopes]
               # if it is, we'll skip this commit when bumping versions
               next if scopes_to_ignore.include?(scope) #=> true
-              formatted_text = style_text("#{commit[:scope]}:", format, "bold").to_s
-              result += " #{formatted_text}"
+              if params[:display_scope] == true
+                formatted_text = style_text("#{commit[:scope]}:", format, "bold").to_s
+                result += " #{formatted_text}"
+              end
             end
 
             result += " #{commit[:subject]}"
@@ -262,6 +264,13 @@ module Fastlane
             description: "To ignore certain scopes when generating changelog",
             default_value: [],
             type: Array,
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :display_scope,
+            description: "Whether you want to hide the scope of the commit",
+            default_value: true,
+            type: Boolean,
             optional: true
           ),
           FastlaneCore::ConfigItem.new(
