@@ -173,7 +173,7 @@ module Fastlane
         when "slack"
           "<#{url}|#{short_hash}>"
         when "markdown"
-          "[#{short_hash}](#{url})"
+          short_hash
         else
           url
         end
