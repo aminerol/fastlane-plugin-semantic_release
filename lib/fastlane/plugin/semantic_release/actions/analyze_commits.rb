@@ -8,10 +8,12 @@ module Fastlane
       RELEASE_IS_NEXT_VERSION_HIGHER = :RELEASE_IS_NEXT_VERSION_HIGHER
       RELEASE_LAST_TAG_HASH = :RELEASE_LAST_TAG_HASH
       RELEASE_LAST_VERSION = :RELEASE_LAST_VERSION
+      RELEASE_LAST_BUILD_NUMBER = :RELEASE_LAST_BUILD_NUMBER
       RELEASE_NEXT_MAJOR_VERSION = :RELEASE_NEXT_MAJOR_VERSION
       RELEASE_NEXT_MINOR_VERSION = :RELEASE_NEXT_MINOR_VERSION
       RELEASE_NEXT_PATCH_VERSION = :RELEASE_NEXT_PATCH_VERSION
       RELEASE_NEXT_VERSION = :RELEASE_NEXT_VERSION
+      RELEASE_NEXT_BUILD_NUMBER = :RELEASE_NEXT_BUILD_NUMBER
       RELEASE_LAST_INCOMPATIBLE_CODEPUSH_VERSION = :RELEASE_LAST_INCOMPATIBLE_CODEPUSH_VERSION
       CONVENTIONAL_CHANGELOG_ACTION_FORMAT_PATTERN = :CONVENTIONAL_CHANGELOG_ACTION_FORMAT_PATTERN
     end
@@ -46,6 +48,7 @@ module Fastlane
         hash = 'HEAD'
         # Default last version
         version = '0.0.0'
+        build_number = '0'
 
         tag = get_last_tag(
           match: params[:match],
@@ -61,9 +64,13 @@ module Fastlane
           # See git describe man page for more info
           tag_name = tag.split('-')[0...-2].join('-').strip
           parsed_version = tag_name.match(params[:tag_version_match])
+          build_number = tag_name.match(params[:tag_build_match])
 
           if parsed_version.nil?
             UI.user_error!("Error while parsing version from tag #{tag_name} by using tag_version_match - #{params[:tag_version_match]}. Please check if the tag contains version as you expect and if you are using single brackets for tag_version_match parameter.")
+          end
+          if build_number.nil?
+            UI.user_error!("Error while parsing build number from tag #{tag_name} by using tag_build_match - #{params[:tag_build_match]}. Please check if the tag contains version as you expect and if you are using single brackets for tag_build_match parameter.")
           end
 
           version = parsed_version[0]
@@ -75,6 +82,9 @@ module Fastlane
 
           UI.message("Found a tag #{tag_name} associated with version #{version}")
         end
+
+        # converts last build number string to the int numbers
+        last_build_number = (build_number[0] || 0).to_i
 
         # converts last version string to the int numbers
         next_major = (version.split('.')[0] || 0).to_i
@@ -127,6 +137,7 @@ module Fastlane
         end
 
         next_version = "#{next_major}.#{next_minor}.#{next_patch}"
+		next_build_number = last_build_number + 1
 
         is_next_version_releasable = Helper::SemanticReleaseHelper.semver_gt(next_version, version)
 
@@ -135,11 +146,13 @@ module Fastlane
         # Last release analysis
         Actions.lane_context[SharedValues::RELEASE_LAST_TAG_HASH] = hash
         Actions.lane_context[SharedValues::RELEASE_LAST_VERSION] = version
+		Actions.lane_context[SharedValues::RELEASE_LAST_BUILD_NUMBER] = last_build_number
         # Next release analysis
         Actions.lane_context[SharedValues::RELEASE_NEXT_MAJOR_VERSION] = next_major
         Actions.lane_context[SharedValues::RELEASE_NEXT_MINOR_VERSION] = next_minor
         Actions.lane_context[SharedValues::RELEASE_NEXT_PATCH_VERSION] = next_patch
         Actions.lane_context[SharedValues::RELEASE_NEXT_VERSION] = next_version
+		Actions.lane_context[SharedValues::RELEASE_NEXT_BUILD_NUMBER] = next_build_number
 
         success_message = "Next version (#{next_version}) is higher than last version (#{version}). This version should be released."
         UI.success(success_message) if is_next_version_releasable
@@ -272,6 +285,11 @@ module Fastlane
             key: :tag_version_match,
             description: "To parse version number from tag name",
             default_value: '\d+\.\d+\.\d+'
+          ),
+	        FastlaneCore::ConfigItem.new(
+            key: :tag_build_match,
+            description: "To parse build number from tag name",
+            default_value: '(\d+)(?!.*\d)'
           ),
           FastlaneCore::ConfigItem.new(
             key: :ignore_scopes,
