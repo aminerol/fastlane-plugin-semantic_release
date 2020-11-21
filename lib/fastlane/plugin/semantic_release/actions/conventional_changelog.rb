@@ -70,18 +70,21 @@ module Fastlane
           commits.each do |commit|
             next if commit[:type] != type || commit[:is_merge]
 
-            result += "-"
-
             unless commit[:scope].nil?
               # if this commit has a scope, then we need to inspect to see if that is one of the scopes we're trying to exclude
               scope = commit[:scope]
+              next if params[:only_scopped_commits] != true
               scopes_to_ignore = params[:ignore_scopes]
               # if it is, we'll skip this commit when bumping versions
               next if scopes_to_ignore.include?(scope) #=> true
+              
+              result += "-"
               if params[:display_scope] == true
                 formatted_text = style_text("#{commit[:scope]}:", format, "bold").to_s
                 result += " #{formatted_text}"
               end
+            else
+              next if params[:only_scopped_commits] == true
             end
 
             result += " #{commit[:subject]}"
@@ -264,6 +267,13 @@ module Fastlane
             description: "To ignore certain scopes when generating changelog",
             default_value: [],
             type: Array,
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :only_scopped_commits,
+            description: "Wether to allow only commits with scope or to pass",
+            default_value: false,
+            type: Boolean,
             optional: true
           ),
           FastlaneCore::ConfigItem.new(
