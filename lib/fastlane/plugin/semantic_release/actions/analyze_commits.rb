@@ -119,6 +119,8 @@ module Fastlane
             scopes_to_ignore = params[:ignore_scopes]
             # if it is, we'll skip this commit when bumping versions
             next if scopes_to_ignore.include?(scope) #=> true
+          else
+            next if params[:only_scopped_commits] == true
           end
 
           if commit[:release] == "major" || commit[:is_breaking_change]
@@ -296,6 +298,13 @@ module Fastlane
             description: "To ignore certain scopes when calculating releases",
             default_value: [],
             type: Array,
+            optional: true
+          ),
+          FastlaneCore::ConfigItem.new(
+            key: :only_scopped_commits,
+            description: "Wether to allow only commits with scope or to pass",
+            default_value: false,
+            type: Boolean,
             optional: true
           ),
           FastlaneCore::ConfigItem.new(
